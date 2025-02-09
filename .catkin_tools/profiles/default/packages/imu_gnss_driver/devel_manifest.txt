@@ -1,6 +1,0 @@
-imu_gnss_driver
-/home/jay/lte_gnss_imu_board/devel/.private/imu_gnss_driver/cmake.lock /home/jay/lte_gnss_imu_board/devel/./cmake.lock
-/home/jay/lte_gnss_imu_board/devel/.private/imu_gnss_driver/lib/pkgconfig/imu_gnss_driver.pc /home/jay/lte_gnss_imu_board/devel/lib/pkgconfig/imu_gnss_driver.pc
-/home/jay/lte_gnss_imu_board/devel/.private/imu_gnss_driver/lib/imu_gnss_driver/imu_gnss_driver_node /home/jay/lte_gnss_imu_board/devel/lib/imu_gnss_driver/imu_gnss_driver_node
-/home/jay/lte_gnss_imu_board/devel/.private/imu_gnss_driver/share/imu_gnss_driver/cmake/imu_gnss_driverConfig.cmake /home/jay/lte_gnss_imu_board/devel/share/imu_gnss_driver/cmake/imu_gnss_driverConfig.cmake
-/home/jay/lte_gnss_imu_board/devel/.private/imu_gnss_driver/share/imu_gnss_driver/cmake/imu_gnss_driverConfig-version.cmake /home/jay/lte_gnss_imu_board/devel/share/imu_gnss_driver/cmake/imu_gnss_driverConfig-version.cmake
