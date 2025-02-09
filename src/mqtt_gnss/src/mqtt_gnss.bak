@@ -1,0 +1,144 @@
+#include <ros/ros.h>
+#include <serial/serial.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <mqtt_gnss/mqtt_gnss_driver.h>
+#include <sstream>
+
+// 用于分割字符串的辅助函数
+std::vector<std::string> splitString(const std::string &s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::istringstream ss(s);
+    std::string token;
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+// 发送AT指令并等待响应
+void sendATCommand(serial::Serial &serial_port, const std::string &command) {
+    serial_port.write(command + "\r\n");  // 发送AT指令
+    ROS_INFO_STREAM("Sent command: " << command);
+}
+
+// 修改后的检查设备响应函数，用于处理多行返回，例如：
+// AT+CGATT?
+// 
+// +CGATT:1
+//
+// OK
+bool checkResponse(serial::Serial &serial_port) {
+    ros::Time start = ros::Time::now();
+    std::string fullResponse;
+    // 循环等待最多2秒，将所有返回的数据一次性读取
+    while ((ros::Time::now() - start) < ros::Duration(2)) {
+        size_t avail = serial_port.available();
+        if (avail > 0) {
+            fullResponse += serial_port.read(avail);
+        }
+        ros::Duration(0.1).sleep();
+    }
+    ROS_INFO_STREAM("Received response: " << fullResponse);
+    std::vector<std::string> keywords = {"OK", "READY", "ok", "ready", "1" /*, "YOUR_ADDITIONAL_KEYWORD", ...*/};
+    for (const auto &keyword : keywords) {
+        if (fullResponse.find(keyword) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 回调函数，处理订阅的GNSS数据
+void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg, serial::Serial &serial_port) {
+    static int msg_count = 0;
+    static ros::Time lastSentTime(0);
+    msg_count++;
+    // 只有每收到20条消息才继续执行
+    if (msg_count % 20 != 0) {
+        return;
+    }
+    // 限制频率，3秒发布一次
+    ros::Time now = ros::Time::now();
+    if ((now - lastSentTime) < ros::Duration(3)) {
+        return;
+    }
+    lastSentTime = now;
+
+    std::string lat_str = std::to_string(msg->latitude);
+    std::string lon_str = std::to_string(msg->longitude);
+    std::string alt_str = std::to_string(msg->altitude);
+
+    // 需要发送的多个AT指令
+    std::vector<std::string> at_commands = {
+        "AT+CPIN?",
+        "AT+CGATT?",
+        "AT+MCONFIG=\"mqttx_e75bf812\",\"\",\"\"",
+        "AT+MIPSTART=\"broker.emqx.io\",\"1883\"",
+        "AT+MCONNECT=1,600",
+        "AT+MPUB=\"test/test\",0,0,\"" + lat_str + "," + lon_str + "," + alt_str + "\""
+    };
+
+    // 先发送第一条指令，无条件执行
+    sendATCommand(serial_port, at_commands[0]);
+    checkResponse(serial_port);
+
+    bool sequence_completed = false;
+    while (!sequence_completed && ros::ok()) {
+        sequence_completed = true;
+        // 从第二条开始依次发送并检测
+        for (size_t i = 1; i < at_commands.size(); i++) {
+            sendATCommand(serial_port, at_commands[i]);
+            if (!checkResponse(serial_port)) {
+                ROS_WARN_STREAM("AT command failed: " << at_commands[i] << ", restarting sequence.");
+                sequence_completed = false;
+                break;
+            } else {
+                ROS_INFO_STREAM("AT command executed successfully: " << at_commands[i]);
+            }
+        }
+        if (!sequence_completed) {
+            // 重新发送第一条指令启动新序列
+            sendATCommand(serial_port, at_commands[0]);
+            checkResponse(serial_port);
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "mqtt_gnss_driver_node");
+    ros::NodeHandle nh("mqtt_gnss_driver_node");
+
+    // 从配置文件中加载串口配置
+    std::string port;
+    int baudrate;
+    nh.param<std::string>("port", port, "/dev/ttyUSB0");
+    nh.param<int>("baudrate", baudrate, 115200);
+
+    // 初始化串口
+    serial::Serial serial_port;
+    try {
+        serial_port.setPort(port);
+        serial_port.setBaudrate(baudrate);
+        serial::Timeout timeout = serial::Timeout::simpleTimeout(1000);
+        serial_port.setTimeout(timeout);
+        serial_port.open();
+    } catch (serial::IOException &e) {
+        ROS_ERROR_STREAM("Unable to open port " << port);
+        return -1;
+    }
+
+    if (!serial_port.isOpen()) {
+        ROS_ERROR_STREAM("Failed to open serial port " << port);
+        return -1;
+    }
+
+    ROS_INFO_STREAM("Serial port opened: " << port << " with baudrate: " << baudrate);
+
+    // 创建一个订阅器，接收GNSS数据
+    ros::Subscriber gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("/imu_gnss_driver/gps/fix", 10, boost::bind(gpsCallback, _1, boost::ref(serial_port)));
+
+    ros::spin();  // 持续运行，等待订阅的GNSS数据
+
+    serial_port.close();
+    return 0;
+}
