@@ -1,7 +1,0 @@
-[01m[K/home/jay/lte_gnss_imu_board/src/mqtt_gnss/src/mqtt_gnss_driver_node.cpp:[m[K In function ‘[01m[Kint main(int, char**)[m[K’:
-[01m[K/home/jay/lte_gnss_imu_board/src/mqtt_gnss/src/mqtt_gnss_driver_node.cpp:124:21:[m[K [01;31m[Kerror: [m[Kexpected primary-expression before ‘[01m[Kchar[m[K’
-  124 |     ros::init(argc, [01;31m[Kchar[m[K **argv, "mqtt_gnss_driver_node");
-      |                     [01;31m[K^~~~[m[K
-make[2]: *** [CMakeFiles/mqtt_gnss_driver_node.dir/build.make:63: CMakeFiles/mqtt_gnss_driver_node.dir/src/mqtt_gnss_driver_node.cpp.o] Error 1
-make[1]: *** [CMakeFiles/Makefile2:813: CMakeFiles/mqtt_gnss_driver_node.dir/all] Error 2
-make: *** [Makefile:141: all] Error 2

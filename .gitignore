@@ -27,3 +27,9 @@ tmp/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Catkin tool directory
+.catkin_tool/
+
+# Logs directory
+logs/
