@@ -56,7 +56,7 @@ int main(int argc, char** argv)
     ros::Publisher imu1_pub = nh.advertise<sensor_msgs::Imu>("imu1/data", 10);
     ros::Publisher mag0_pub = nh.advertise<sensor_msgs::MagneticField>("imu0/mag", 10);
     ros::Publisher mag1_pub = nh.advertise<sensor_msgs::MagneticField>("imu1/mag", 10);
-    ros::Publisher gps_pub  = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 10);
+    // ros::Publisher gps_pub  = nh.advertise<sensor_msgs::NavSatFix>("gps/fix", 10);
 
     ros::Rate loop_rate(100);
 
@@ -104,9 +104,9 @@ int main(int argc, char** argv)
                 double imu0_mag_z   = std::stod(tokens[16]);
                 double imu1_mag_z   = std::stod(tokens[17]);
 
-                double gps_long = std::stod(tokens[18]);
-                double gps_lat  = std::stod(tokens[19]);
-                double gps_alt  = std::stod(tokens[20]);
+                // double gps_long = std::stod(tokens[18]);
+                // double gps_lat  = std::stod(tokens[19]);
+                // double gps_alt  = std::stod(tokens[20]);
 
                 ros::Time current_time = ros::Time::now();
 
@@ -148,13 +148,13 @@ int main(int argc, char** argv)
                 mag1_msg.magnetic_field.z = imu1_mag_z;
                 mag1_pub.publish(mag1_msg);
 
-                sensor_msgs::NavSatFix gps_msg;
-                gps_msg.header.stamp = current_time;
-                gps_msg.header.frame_id = "gps_link";
-                gps_msg.longitude = gps_long;
-                gps_msg.latitude  = gps_lat;
-                gps_msg.altitude  = gps_alt;
-                gps_pub.publish(gps_msg);
+                // sensor_msgs::NavSatFix gps_msg;
+                // gps_msg.header.stamp = current_time;
+                // gps_msg.header.frame_id = "gps_link";
+                // gps_msg.longitude = gps_long;
+                // gps_msg.latitude  = gps_lat;
+                // gps_msg.altitude  = gps_alt;
+                // gps_pub.publish(gps_msg);
 
             } catch (std::exception &e) {
                 ROS_ERROR_STREAM("Data parsing error: " << e.what()); // 数据解析错误

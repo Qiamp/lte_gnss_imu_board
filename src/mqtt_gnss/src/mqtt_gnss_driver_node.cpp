@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
     g_serial_ptr = &serial_port;
 
     // 订阅GNSS数据话题
-    ros::Subscriber gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("/imu_gnss_driver/gps/fix", 10, boost::bind(gpsCallback, _1, boost::ref(serial_port)));
+    ros::Subscriber gps_sub = nh.subscribe<sensor_msgs::NavSatFix>("/ublox_driver/receiver_lla", 10, boost::bind(gpsCallback, _1, boost::ref(serial_port)));
 
     // 进入事件循环
     ros::spin();
