@@ -29,7 +29,7 @@ tmp/
 Thumbs.db
 
 # Catkin tool directory
-.catkin_tool/
+.catkin_tools/
 
 # Logs directory
 logs/

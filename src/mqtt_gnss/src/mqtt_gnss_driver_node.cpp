@@ -126,7 +126,7 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg, serial::Serial &se
     // 限制数据发送频率，每3秒执行一次
     static ros::Time lastSentTime(0);
     ros::Time now = ros::Time::now();
-    if ((now - lastSentTime) < ros::Duration(3)) {
+    if ((now - lastSentTime) < ros::Duration(0.5)) {
         return;
     }
     lastSentTime = now;
@@ -173,7 +173,7 @@ void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg, serial::Serial &se
     }
     
     // 持续发布GNSS数据的AT命令
-    std::string mpub_cmd = "AT+MPUB=\"test\",0,1,\"" + lat_str + "," + lon_str + "," + alt_str + "\"";
+    std::string mpub_cmd = "AT+MPUB=\"test/gnss\",0,0,\"" + lat_str + "," + lon_str + "," + alt_str + "\"";
     while (ros::ok()) {
         sendATCommand(serial_port, mpub_cmd);
         if (checkResponse(serial_port)) {
